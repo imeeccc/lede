@@ -1,4 +1,10 @@
-﻿Welcome to Lean's  git source of OpenWrt and packages
+**Forked from coolsnowwolf/lede**
+
+**在lean源码的基础上添加或替换一些自己认为有用的插件**
+
+---
+
+Welcome to Lean's  git source of OpenWrt and packages
 
 中文：如何编译自己需要的 OpenWrt 固件
 
