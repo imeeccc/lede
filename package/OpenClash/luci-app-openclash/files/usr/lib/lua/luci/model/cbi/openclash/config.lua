@@ -8,7 +8,7 @@ local fs = require "luci.openclash"
 local uci = require("luci.model.uci").cursor()
 local CHIF = "0"
 
-ful = SimpleForm("upload", translate("Server Configuration"), nil)
+ful = SimpleForm("upload", translate("Server Config"), nil)
 ful.reset = false
 ful.submit = false
 
@@ -96,7 +96,7 @@ e[t].enable=false
 end
 end
 
-form=SimpleForm("filelist",translate("Config File List"),nil)
+form=SimpleForm("filelist")
 form.reset=false
 form.submit=false
 tb=form:section(Table,e)
@@ -111,7 +111,7 @@ return e==".yaml"
 end
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
-btnis.template="cbi/other_button"
+btnis.template="openclash/other_button"
 btnis.render=function(o,t,a)
 if not e[t]then return false end
 if IsYamlFile(e[t].name)then
@@ -129,7 +129,7 @@ HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "confi
 end
 
 btndl = tb:option(Button,"download",translate("Download Configurations")) 
-btndl.template="cbi/other_button"
+btndl.template="openclash/other_button"
 btndl.render=function(o,t,a)
 if not e[t]then return false end
 if IsYamlFile(e[t].name)then

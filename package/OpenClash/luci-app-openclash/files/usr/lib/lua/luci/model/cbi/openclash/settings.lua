@@ -48,6 +48,7 @@ o = s:taboption("settings", ListValue, "en_mode", font_red..bold_on..translate("
 o.description = translate("Select Mode For OpenClash Work, Network Error Try Flush DNS Cache")
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
+o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
 o.default = "redir-host"
 
 o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
@@ -202,6 +203,24 @@ o:depends("rule_source", "ConnersHua_return")
 o = s:taboption("rules", ListValue, "Apple", translate("Apple"))
 ---- o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Netease_Music", translate("Netease Music"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Speedtest", translate("Speedtest"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Telegram", translate("Telegram"))
+o:depends("rule_source", "lhie1")
  for l in file:lines() do
    o:value(l)
    end
