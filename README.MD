@@ -11,3 +11,5 @@
 - 添加OpenClash插件 ([vernesong/OpenClash](https://github.com/vernesong/OpenClash))
 
 - 添加Rosy主题 ([luci-theme-rosy](https://github.com/rosywrt/luci-theme-rosy))
+
+- 添加serverchan插件([luci-app-serverchan](https://github.com/tty228/luci-app-serverchan))
