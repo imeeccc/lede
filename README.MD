@@ -13,3 +13,5 @@
 - 添加Rosy主题 ([rosywrt/luci-theme-rosy](https://github.com/rosywrt/luci-theme-rosy))
 
 - 添加serverchan插件([tty228/luci-app-serverchan](https://github.com/tty228/luci-app-serverchan))
+
+- 添加adguardhome插件([rufengsuixing/luci-app-adguardhome](https://github.com/rufengsuixing/luci-app-adguardhome))
