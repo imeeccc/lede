@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.35.6
+PKG_VERSION:=0.36.1
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -31,6 +31,7 @@ define Build/Prepare
 	chmod 0755 ${CURDIR}/files/etc/init.d/openclash
 	chmod -R 0755 ${CURDIR}/files/usr/share/openclash/
 	mkdir -p ${CURDIR}/files/etc/openclash/config >/dev/null 2>&1
+	mkdir -p ${CURDIR}/files/etc/openclash/proxy_provider >/dev/null 2>&1
 	mkdir -p ${CURDIR}/files/etc/openclash/backup >/dev/null 2>&1
 endef
 
@@ -68,6 +69,7 @@ uci set firewall.openclash.path=/var/etc/openclash.include >/dev/null 2>&1
 uci set firewall.openclash.reload=1 >/dev/null 2>&1
 uci commit firewall >/dev/null 2>&1
 mkdir -p /etc/openclash/config >/dev/null 2>&1
+mkdir -p /etc/openclash/proxy_provider >/dev/null 2>&1
 mkdir -p /etc/openclash/backup >/dev/null 2>&1
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
@@ -79,9 +81,13 @@ if [ -f "/tmp/config.yaml" ]; then
 	mv "/tmp/config.yaml" "/etc/openclash/config/config.yaml" >/dev/null 2>&1
 elif [ -f "/tmp/config.yml" ]; then
 	mv "/tmp/config.yml" "/etc/openclash/config/config.yaml" >/dev/null 2>&1
-elif [ -d "/tmp/config/" ]; then
+elif [ -d "/tmp/openclash_config/" ]; then
   rm -rf "/etc/openclash/config" >/dev/null 2>&1
   mv "/tmp/openclash_config" "/etc/openclash/config" >/dev/null 2>&1
+fi
+if [ -d "/tmp/openclash_proxy_provider/" ]; then
+  rm -rf "/etc/openclash/proxy_provider" >/dev/null 2>&1
+  mv "/tmp/openclash_proxy_provider" "/etc/openclash/proxy_provider" >/dev/null 2>&1
 fi
 mkdir -p /lib/upgrade/keep.d >/dev/null 2>&1
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
@@ -99,7 +105,9 @@ define Package/$(PKG_NAME)/prerm
 if [ ! -f "/tmp/openclash_update.sh" ]; then
 	rm -rf /etc/openclash/clash >/dev/null 2>&1
 fi
-  mv "/etc/openclash/config" "/tmp/openclash_config" >/dev/null 2>&1
+	mv "/etc/openclash/config.yaml" "/tmp/config.yaml" >/dev/null 2>&1
+	mv "/etc/openclash/config" "/tmp/openclash_config" >/dev/null 2>&1
+	mv "/etc/openclash/proxy_provider" "/tmp/openclash_proxy_provider" >/dev/null 2>&1
 	cp "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
@@ -114,6 +122,7 @@ define Package/$(PKG_NAME)/postrm
 if [ -f "/etc/openclash/clash" ]; then
 	rm -rf /etc/openclash/config >/dev/null 2>&1
 	rm -rf /etc/openclash/backup >/dev/null 2>&1
+	rm -rf /etc/openclash/proxy_provider >/dev/null 2>&1
 else
 	rm -rf /etc/openclash >/dev/null 2>&1
 fi
