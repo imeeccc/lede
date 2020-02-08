@@ -195,7 +195,6 @@ jobs:
           CONFIG_PACKAGE_boost-random=y
           CONFIG_PACKAGE_libdouble-conversion=y
           CONFIG_PACKAGE_libpcre2-16=y
-          CONFIG_PACKAGE_qBittorrent=y
           CONFIG_PACKAGE_qt5-core=y
           CONFIG_PACKAGE_qt5-network=y
           CONFIG_PACKAGE_qt5-xml=y
