@@ -20,6 +20,9 @@ msgstr "运行状态"
 msgid "Global Settings"
 msgstr "全局设置"
 
+msgid "Game Rules and Groups"
+msgstr "游戏规则与策略组管理"
+
 msgid "General Settings"
 msgstr "常规设置"
 
@@ -92,6 +95,9 @@ msgstr "Redir-Host（兼容）模式"
 msgid "fake-ip"
 msgstr "Fake-IP（增强）模式"
 
+msgid "redir-host(tun mode)"
+msgstr "Redir-Host（TUN）模式【依赖kmod-tun】"
+
 msgid "fake-ip(tun mode)"
 msgstr "Fake-IP（TUN）模式【依赖kmod-tun】"
 
@@ -101,8 +107,8 @@ msgstr "Redir-Host（游戏）模式【依赖kmod-tun】"
 msgid "fake-ip-vpn(game mode)"
 msgstr "Fake-IP（游戏）模式【依赖kmod-tun】"
 
-msgid "Select Mode For OpenClash Work, Network Error Try Flush DNS Cache"
-msgstr "选择运行模式，在兼容模式下无法代理路由器自身流量，如客户端的网络无法连接请尝试清除DNS缓存"
+msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
+msgstr "选择运行模式，如客户端的网络异常请尝试清除DNS缓存"
 
 msgid "Proxy Mode"
 msgstr "*代理模式"
@@ -253,8 +259,8 @@ msgid "No specify upload file."
 msgstr "未指定上传文件"
 
 msgid ""
-"Only Support yaml what would be save to /etc/openclash/config/"
-msgstr "注意：只支持【yaml】后缀的文件，文件将被保存到 /etc/openclash/config/"
+"Only Support yaml what would be save to /etc/openclash/"
+msgstr "注意：只支持【yaml】后缀的文件，文件将被保存到 /etc/openclash/"
 
 msgid "Proxy Provider File List"
 msgstr "代理集文件列表"
@@ -487,7 +493,7 @@ msgid "Delete Severs"
 msgstr "清空服务器配置"
 
 msgid "Delete Proxy Provider"
-msgstr "清空节点集配置"
+msgstr "清空代理集配置"
 
 msgid "Delete Groups"
 msgstr "清空策略组配置"
@@ -685,7 +691,7 @@ msgid "Use For All Config File"
 msgstr "添加到所有配置文件"
 
 msgid "Proxy-Provider"
-msgstr "代理集管理"
+msgstr "代理集配置"
 
 msgid "Edit Proxy-Provider"
 msgstr "编辑代理集配置"
@@ -719,4 +725,31 @@ msgstr "状态检查URL"
 
 msgid "Health Check Interval(s)"
 msgstr "状态检查间隔（s）"
+
+msgid "Game Rule's Name"
+msgstr "选择游戏规则"
+
+msgid "Select Proxy Group"
+msgstr "选择策略组"
+
+msgid "Game Rules List"
+msgstr "游戏规则列表"
+
+msgid "Rule Name"
+msgstr "规则名称"
+
+msgid "Download Rule"
+msgstr "下载规则"
+
+msgid "Exist"
+msgstr "已下载"
+
+msgid "Not Exist"
+msgstr "未下载"
+
+msgid "Order Number"
+msgstr "序号"
+
+
+
 

@@ -1,15 +1,18 @@
-#!/bin/sh /etc/rc.common
+#!/bin/sh
+. /lib/functions.sh
+
 status=$(ps|grep -c /usr/share/openclash/yml_groups_set.sh)
 [ "$status" -gt "3" ] && exit 0
 
 START_LOG="/tmp/openclash_start.log"
 GROUP_FILE="/tmp/yaml_groups.yaml"
+CONFIG_GROUP_FILE="/tmp/yaml_group.yaml"
 CFG_FILE="/etc/config/openclash"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
-UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -18,7 +21,7 @@ fi
 
 if [ -z "$CONFIG_FILE" ]; then
 	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-	CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+	CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 fi
 
 if [ -z "$CONFIG_NAME" ]; then
@@ -33,16 +36,22 @@ yml_servers_add()
 	local section="$1"
 	config_get_bool "enabled" "$section" "enabled" "1"
 	config_get "config" "$section" "config" ""
+	config_get "name" "$section" "name" ""
 	
-	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
   fi
   
 	if [ "$enabled" = "0" ]; then
       return
   else
-	   config_get "name" "$section" "name" ""
-	   config_list_foreach "$section" "groups" set_groups "$name" "$2"
+     if [ -z "$3" ]; then
+	      config_list_foreach "$section" "groups" set_groups "$name" "$2"
+     fi
+	   
+	   if [ ! -z "$if_game_group" ] && [ -z "$(grep -F $name /tmp/yaml_proxy.yaml)" ]; then
+	      /usr/share/openclash/yml_proxys_set.sh "$name" "proxy"
+	   fi
 	fi
 	
 }
@@ -77,16 +86,22 @@ set_proxy_provider()
 	local section="$1"
 	config_get_bool "enabled" "$section" "enabled" "1"
 	config_get "config" "$section" "config" ""
+	config_get "name" "$section" "name" ""
 	
-	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
   fi
   
 	if [ "$enabled" = "0" ]; then
       return
   else
-	   config_get "name" "$section" "name" ""
-	   config_list_foreach "$section" "groups" set_provider_groups "$name" "$2"
+     if [ -z "$3" ]; then
+	      config_list_foreach "$section" "groups" set_provider_groups "$name" "$2"
+     fi
+	   
+	   if [ ! -z "$if_game_group" ] && [ -z "$(grep "^ \{0,\}$name" /tmp/yaml_proxy_provider.yaml)" ]; then
+	      /usr/share/openclash/yml_proxys_set.sh "$name" "proxy-provider"
+	   fi
 	fi
 }
 
@@ -114,7 +129,9 @@ yml_groups_set()
    config_get "test_url" "$section" "test_url" ""
    config_get "test_interval" "$section" "test_interval" ""
    
-   if [ "$servers_update" -eq "1" ] && [ "$config" != "all" ]; then
+   if [ ! -z "$if_game_group" ] && [ "$if_game_group" != "$name" ]; then
+      return
+   elif [ "$servers_update" -eq "1" ] && [ "$config" != "all" ]; then
       return
    fi
 
@@ -134,6 +151,13 @@ yml_groups_set()
       return
    fi
    
+   #游戏策略组存在时判断节点是否存在
+   if [ ! -z "$if_game_group" ] && [ ! -z "$(grep "^ \{0,\}- name: $if_game_group" "$CONFIG_GROUP_FILE")" ]; then
+      config_foreach yml_servers_add "servers" "$name" "check" #加入服务器节点
+      config_foreach set_proxy_provider "proxy-provider" "$group_name" "check" #加入代理集
+      return
+   fi
+   
    echo "正在写入【$type】-【$name】策略组到配置文件【$CONFIG_NAME】..." >$START_LOG
    
    echo "- name: $name" >>$GROUP_FILE
@@ -143,9 +167,9 @@ yml_groups_set()
    
    #名字变化时处理规则部分
    if [ "$name" != "$old_name" ] && [ ! -z "$old_name" ]; then
-      sed -i "s/,${old_name}/,${name}#d/g" $CONFIG_FILE 2>/dev/null
-      sed -i "s/:${old_name}$/:${name}#d/g" $CONFIG_FILE 2>/dev/null #修改第三方规则分组对应标签
-      sed -i "s/\'${old_name}\'/\'${name}\'/g" $CFG_FILE 2>/dev/null
+      sed -i "s/,${old_name}/,${name}#d/g" "$CONFIG_FILE" 2>/dev/null
+      sed -i "s/:${old_name}$/:${name}#d/g" "$CONFIG_FILE" 2>/dev/null #修改第三方规则分组对应标签
+      sed -i "s/\'${old_name}\'/\'${name}\'/g" "$CFG_FILE" 2>/dev/null
       config_load "openclash"
    fi
    
@@ -156,9 +180,8 @@ yml_groups_set()
    config_foreach yml_servers_add "servers" "$name" #加入服务器节点
 
    echo "  use: $group_name" >>$GROUP_FILE
-   
    config_foreach set_proxy_provider "proxy-provider" "$group_name" #加入代理集
-
+   
    if [ "$set_group" -eq 1 ]; then
       sed -i "/^ \{0,\}proxies: ${group_name}/c\  proxies:" $GROUP_FILE
    else
@@ -172,16 +195,17 @@ yml_groups_set()
    fi
    
    [ ! -z "$test_url" ] && {
-   	echo "  url: $test_url" >>$GROUP_FILE
+   	  echo "  url: $test_url" >>$GROUP_FILE
    }
    [ ! -z "$test_interval" ] && {
-   echo "  interval: \"$test_interval\"" >>$GROUP_FILE
+      echo "  interval: \"$test_interval\"" >>$GROUP_FILE
    }
 }
 
 create_config=$(uci get openclash.config.create_config 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
+if_game_group="$1"
+if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_game_group" ]; then
    /usr/share/openclash/yml_groups_name_get.sh
    if [ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"]; then
       echo "配置文件【$CONFIG_NAME】的信息读取失败，无法进行修改，请选择一键创建配置文件..." >$START_LOG
@@ -190,12 +214,19 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
       echo "" >$START_LOG
       exit 0
    else
-      echo "开始写入配置文件【$CONFIG_NAME】的策略组信息..." >$START_LOG
-      echo "Proxy Group:" >$GROUP_FILE
+      if [ -z "$if_game_group" ]; then
+         echo "开始写入配置文件【$CONFIG_NAME】的策略组信息..." >$START_LOG
+         echo "Proxy Group:" >$GROUP_FILE
+      else
+         echo "开始加入游戏策略组【$if_game_group】的信息..." >$START_LOG
+         rm -rf $GROUP_FILE
+      fi
       config_load "openclash"
       config_foreach yml_groups_set "groups"
-      sed -i "s/#d//g" $CONFIG_FILE 2>/dev/null
+      sed -i "s/#d//g" "$CONFIG_FILE" 2>/dev/null
       echo "配置文件【$CONFIG_NAME】的策略组写入完成！" >$START_LOG
    fi
 fi
-/usr/share/openclash/yml_proxys_set.sh
+if [ -z "$if_game_group" ]; then
+   /usr/share/openclash/yml_proxys_set.sh
+fi
