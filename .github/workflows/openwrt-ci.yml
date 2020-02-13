@@ -187,7 +187,6 @@ jobs:
           CONFIG_PACKAGE_mdadm=y
           CONFIG_PACKAGE_mwan3=y
           CONFIG_PACKAGE_npc=y
-          CONFIG_PACKAGE_ntfs-3g=y
           CONFIG_PACKAGE_ntpclient=y
           CONFIG_PACKAGE_openvpn-easy-rsa=y
           CONFIG_PACKAGE_openvpn-openssl=y
