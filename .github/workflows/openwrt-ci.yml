@@ -92,6 +92,7 @@ jobs:
           CONFIG_OPENVPN_openssl_ENABLE_SMALL=y
           CONFIG_PACKAGE_blkid=y
           CONFIG_PACKAGE_brook=y
+          CONFIG_PACKAGE_btrfs-progs=y
           CONFIG_PACKAGE_ca-bundle=y
           CONFIG_PACKAGE_chinadns-ng=y
           CONFIG_PACKAGE_collectd=y
@@ -111,12 +112,18 @@ jobs:
           CONFIG_PACKAGE_iputils-arping=y
           CONFIG_PACKAGE_kcptun-client=y
           CONFIG_PACKAGE_kmod-fuse=y
+          CONFIG_PACKAGE_kmod-lib-crc32c=y
+          CONFIG_PACKAGE_kmod-lib-raid6=y
+          CONFIG_PACKAGE_kmod-lib-xor=y
           CONFIG_PACKAGE_kmod-macvlan=y
+          CONFIG_PACKAGE_kmod-md-linear=y
           CONFIG_PACKAGE_kmod-md-mod=y
           CONFIG_PACKAGE_kmod-md-raid0=y
           CONFIG_PACKAGE_kmod-md-raid1=y
           CONFIG_PACKAGE_kmod-md-raid10=y
+          CONFIG_PACKAGE_kmod-md-raid456=y
           CONFIG_PACKAGE_kmod-usb-printer=y
+          CONFIG_PACKAGE_libattr=y
           CONFIG_PACKAGE_libcap=y
           CONFIG_PACKAGE_libcurl=y
           CONFIG_PACKAGE_libgd=y
@@ -124,10 +131,12 @@ jobs:
           CONFIG_PACKAGE_libjpeg=y
           CONFIG_PACKAGE_libltdl=y
           CONFIG_PACKAGE_liblzo=y
+          CONFIG_PACKAGE_libmount=y
           CONFIG_PACKAGE_libpng=y
           CONFIG_PACKAGE_librrd1=y
           # CONFIG_PACKAGE_libustream-openssl is not set
           CONFIG_PACKAGE_libwebsockets-full=y
+          CONFIG_PACKAGE_lsblk=y
           CONFIG_PACKAGE_luci-app-adguardhome=y
           CONFIG_PACKAGE_luci-app-diskman=y
           CONFIG_PACKAGE_luci-app-dnsforwarder=y
@@ -192,9 +201,11 @@ jobs:
           CONFIG_PACKAGE_openvpn-openssl=y
           CONFIG_PACKAGE_openwrt-keyring=y
           CONFIG_PACKAGE_p910nd=y
+          CONFIG_PACKAGE_parted=y
           CONFIG_PACKAGE_resolveip=y
           CONFIG_PACKAGE_rrdtool1=y
           CONFIG_PACKAGE_shadowsocks-libev-ss-local=y
+          CONFIG_PACKAGE_shadowsocksr-libev-ssr-local=y
           CONFIG_PACKAGE_smartdns=y
           CONFIG_PACKAGE_smartmontools=y
           CONFIG_PACKAGE_softethervpn5-bridge=y
