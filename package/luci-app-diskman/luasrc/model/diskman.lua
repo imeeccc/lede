@@ -6,7 +6,7 @@ Copyright 2019 lisaac <https://github.com/lisaac/luci-app-diskman>
 require "luci.util"
 local ver = require "luci.version"
 
-local CMD = {"parted", "mdadm", "blkid", "smartctl", "df", "sgdisk", "btrfs", "mergerfs", "snapraid"}
+local CMD = {"parted", "mdadm", "blkid", "smartctl", "df", "btrfs", "lsblk"}
 
 local d = {command ={}}
 for _, cmd in ipairs(CMD) do
@@ -17,7 +17,8 @@ end
 d.command.mount = nixio.fs.access("/usr/bin/mount") and "/usr/bin/mount" or "/bin/mount"
 d.command.umount = nixio.fs.access("/usr/bin/umount") and "/usr/bin/umount" or "/bin/umount"
 
-local mounts = nixio.fs.readfile("/proc/mounts") or ""
+local proc_mounts = nixio.fs.readfile("/proc/mounts") or ""
+local mounts = luci.util.exec(d.command.mount) or ""
 local swaps = nixio.fs.readfile("/proc/swaps") or ""
 local df = luci.sys.exec(d.command.df) or ""
 
@@ -121,8 +122,7 @@ local get_mount_point = function(partition)
       dk_root_dir = dk.new():info().body.DockerRootDir
     end
   -- end
-
-  for m in mounts:gmatch("/dev/"..partition.." ([^ ]*)") do
+  for m in mounts:gmatch("/dev/"..partition.." on ([^ ]*)") do
     if dk_root_dir and m:match(dk_root_dir) then
     else
       mount_point = (mount_point and (mount_point .. " ")  or "") .. m
@@ -194,6 +194,9 @@ local get_parted_info = function(device)
       elseif device:match("mmcblk") or device:match("md") or device:match("nvme") then
         partition_temp["name"] = device.."p"..partition_temp["number"]
       end
+      if partition_temp["number"] > 0 and partition_temp["fs"] == "" and d.command.lsblk then
+        partition_temp["fs"] = luci.util.exec(d.command.lsblk .. " /dev/"..device.. tostring(partition_temp["number"]) .. " -no fstype")
+      end
       partition_temp["fs"] = partition_temp["fs"] == "" and "raw" or partition_temp["fs"]
       partition_temp["sec_start"] = partition_temp["sec_start"] and partition_temp["sec_start"]:sub(1,-2)
       partition_temp["sec_end"] = partition_temp["sec_end"] and partition_temp["sec_end"]:sub(1,-2)
@@ -231,14 +234,21 @@ local get_parted_info = function(device)
           table.insert(partitions_temp[disk_temp["extended_partition_index"]]["logicals"], i)
         end
       elseif (p["number"] < 4) and (p["number"] > 0) then
-        local real_size_sec = tonumber(nixio.fs.readfile("/sys/block/"..device.."/"..p["name"].."/size")) * tonumber(disk_temp.phy_sec)
-        if real_size_sec ~= p["size"] then
-          disk_temp["extended_partition_index"] = i
-          p["type"] = "extended"
-          p["size"] = real_size_sec
-          p["fs"] = "-"
-          p["logicals"] = {}
+        local s = nixio.fs.readfile("/sys/block/"..device.."/"..p["name"].."/size")
+        if s then
+          local real_size_sec = tonumber(s) * tonumber(disk_temp.phy_sec)
+          -- if size not equal, it's an extended
+          if real_size_sec ~= p["size"] then
+            disk_temp["extended_partition_index"] = i
+            p["type"] = "extended"
+            p["size"] = real_size_sec
+            p["fs"] = "-"
+            p["logicals"] = {}
+          else
+            p["type"] = "primary"
+          end
         else
+          -- if not found in "/sys/block"
           p["type"] = "primary"
         end
       end
@@ -275,7 +285,7 @@ d.get_mount_points = function()
   if _o and dk then
     dk_root_dir = dk.new():info().body.DockerRootDir
   end
-  for mount in mounts:gmatch("[^\n]+") do
+  for mount in proc_mounts:gmatch("[^\n]+") do
     local device = mount:match("^([^%s]+)%s+.+")
     -- only show /dev/xxx device
     if device and device:match("/dev/") then
