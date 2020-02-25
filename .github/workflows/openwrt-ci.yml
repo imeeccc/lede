@@ -92,7 +92,6 @@ jobs:
           CONFIG_OPENVPN_openssl_ENABLE_SERVER=y
           CONFIG_OPENVPN_openssl_ENABLE_SMALL=y
           CONFIG_PACKAGE_UnblockNeteaseMusic=y
-          CONFIG_PACKAGE_antfs-mount=y
           CONFIG_PACKAGE_bash=y
           CONFIG_PACKAGE_blkid=y
           CONFIG_PACKAGE_boost-chrono=y
