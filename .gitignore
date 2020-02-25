@@ -27,4 +27,4 @@ TAGS*~
 git-src
 .git-credentials
 README.MD
-.github/
+/.github
