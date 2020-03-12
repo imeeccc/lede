@@ -27,21 +27,11 @@ function index()
 	entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "groups-config"},cbi("openclash/groups-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "proxy-provider-config"},cbi("openclash/proxy-provider-config"), nil).leaf = true
-	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 70).leaf = true
+	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Config Manage"), 70).leaf = true
 	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 80).leaf = true
 
 end
 local fs = require "luci.openclash"
-CONFIG_FILE=string.sub(luci.sys.exec("uci get openclash.config.config_path"), 1, -2)
-
-if CONFIG_FILE == "" or not fs.isfile(CONFIG_FILE) then
-   CONFIG_FILE_FIRST=luci.sys.exec("ls -lt '/etc/openclash/config/' | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}'")
-   if CONFIG_FILE_FIRST ~= "" then
-      CONFIG_FILE="/etc/openclash/config/" .. string.sub(CONFIG_FILE_FIRST, 1, -2)
-   else
-      CONFIG_FILE = ""
-   end
-end
 
 local function is_running()
 	return luci.sys.call("pidof clash >/dev/null") == 0
@@ -52,7 +42,7 @@ local function is_web()
 end
 
 local function is_watchdog()
-	return luci.sys.exec("ps |grep openclash_watchdog.sh |grep -v grep 2>/dev/null |sed -n 1p")
+	return luci.sys.call("ps |grep openclash_watchdog.sh |grep -v grep >/dev/null") == 0
 end
 
 local function cn_port()
@@ -61,14 +51,6 @@ end
 
 local function mode()
 	return luci.sys.exec("uci get openclash.config.en_mode 2>/dev/null")
-end
-
-local function config()
-   if CONFIG_FILE ~= "" then
-      return string.sub(CONFIG_FILE, 23, -1)
-   else
-      return "1"
-   end
 end
 
 local function ipdb()
@@ -88,7 +70,7 @@ local function ConnersHua_return()
 end
 
 local function daip()
-	return luci.sys.exec("uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
+        return luci.sys.exec("ifstatus lan 2>/dev/null |jsonfilter -e '@[\"ipv4-address\"][0].address' 2>/dev/null")
 end
 
 local function dase()
@@ -191,7 +173,6 @@ end
 function action_state()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		config = config(),
 		lhie1 = lhie1(),
 		ConnersHua = ConnersHua(),
 		ConnersHua_return = ConnersHua_return(),

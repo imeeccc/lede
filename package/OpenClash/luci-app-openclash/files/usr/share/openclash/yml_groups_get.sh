@@ -38,7 +38,7 @@ fi
 echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
 
 /usr/share/openclash/yml_groups_name_get.sh
-[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"] && {
+[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)" ] && {
 	echo "读取错误，配置文件【$CONFIG_NAME】异常！" >$START_LOG
 	uci commit openclash
 	sleep 5
@@ -102,7 +102,7 @@ num=$(grep -c "name:" $group_file)
    
 cfg_get()
 {
-	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
 }
 
 for n in $line
