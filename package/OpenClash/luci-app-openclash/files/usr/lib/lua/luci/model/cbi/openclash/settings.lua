@@ -54,6 +54,14 @@ o:value("redir-host-vpn", translate("redir-host-vpn(game mode)"))
 o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))
 o.default = "redir-host"
 
+o = s:taboption("settings", ListValue, "enable_udp_proxy", font_red..bold_on..translate("Proxy UDP Traffics")..bold_off..font_off)
+o.description = translate("Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy")
+o:depends("en_mode", "redir-host")
+o:depends("en_mode", "fake-ip")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = "0"
+
 o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
 o.description = translate("Select Proxy Mode")
 o:value("Rule", translate("Rule Proxy Mode"))
@@ -210,7 +218,19 @@ o:depends("rule_source", "ConnersHua")
    o:value(l)
    end
    file:seek("set")
-o = s:taboption("rules", ListValue, "Netease_Music", translate("Netease Music"))
+o = s:taboption("rules", ListValue, "Netflix", translate("Netflix"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Spotify", translate("Spotify"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Steam", translate("Steam"))
 o:depends("rule_source", "lhie1")
  for l in file:lines() do
    o:value(l)
@@ -223,6 +243,12 @@ o:depends("rule_source", "lhie1")
    end
    file:seek("set")
 o = s:taboption("rules", ListValue, "Telegram", translate("Telegram"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Netease_Music", translate("Netease Music"))
 o:depends("rule_source", "lhie1")
  for l in file:lines() do
    o:value(l)
