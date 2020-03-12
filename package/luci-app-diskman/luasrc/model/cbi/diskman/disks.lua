@@ -234,6 +234,17 @@ v_mount_point.render = function(self, section, scope)
     Value.render(self, section, scope)
   else
     self.template = "cbi/dvalue"
+    local new_mp = ""
+    local v_mp_d
+    for v_mp_d in self["section"]["data"][section]["mount_point"]:gmatch('[^/]+') do
+      if #v_mp_d > 12 then
+        new_mp = new_mp .. "/" .. v_mp_d:sub(1,7) .. ".." .. v_mp_d:sub(-4)
+      else
+        new_mp = new_mp .."/".. v_mp_d
+      end
+    end
+    self["section"]["data"][section]["mount_point"] = '<span title="'..self["section"]["data"][section]["mount_point"] .. '" >'..new_mp..'</span>'
+    self.rawhtml = true
     DummyValue.render(self, section, scope)
   end
 end
@@ -255,6 +266,7 @@ end
 btn_umount.write = function(self, section, value)
   local res
   if value == translate("Mount") then
+    if not _mount_point.mount_point or not _mount_point.device then return end
     luci.util.exec("mkdir -p ".. _mount_point.mount_point)
     res = luci.util.exec(dm.command.mount .. " ".. _mount_point.device .. (_mount_point.fs and (" -t ".. _mount_point.fs )or "") .. (_mount_point.mount_options and (" -o " .. _mount_point.mount_options.. " ") or  " ").._mount_point.mount_point .. " 2>&1")
   elseif value == translate("Umount") then
