@@ -85,10 +85,21 @@ v2ray_protocol = s:option(ListValue, "v2ray_protocol",
 v2ray_protocol:value("vmess", translate("Vmess"))
 v2ray_protocol:depends("type", "V2ray")
 
+brook_protocol = s:option(ListValue, "brook_protocol",
+                          translate("Brook Protocol"))
+brook_protocol:value("client", translate("Brook"))
+brook_protocol:value("wsclient", translate("WebSocket"))
+brook_protocol:depends("type", "Brook")
+
+brook_tls = s:option(Flag, "brook_tls", translate("Use TLS"))
+brook_tls:depends("brook_protocol", "wsclient")
+
 local n = {}
 uci:foreach(appname, "nodes", function(e)
-    if e.type and e.type == "V2ray" and e.remarks and e.port then
-        n[e[".name"]] = "[%s] %s:%s" % {e.remarks, e.address, e.port}
+    if e.type and e.remarks and e.port then
+        if e.address:match("[\u4e00-\u9fa5]") and e.address:find("%.") and e.address:sub(#e.address) ~= "." then
+            n[e[".name"]] = "%s：[%s] %s:%s" % {e.type, e.remarks, e.address, e.port}
+        end
     end
 end)
 
@@ -97,22 +108,26 @@ for key, _ in pairs(n) do table.insert(key_table, key) end
 table.sort(key_table)
 
 v2ray_balancing_node = s:option(DynamicList, "v2ray_balancing_node",
-                                translate("Load balancing node list"), translate(
+                                translate("Load balancing node list"),
+                                translate(
                                     "Load balancing node list, <a target='_blank' href='https://toutyrater.github.io/routing/balance2.html'>document</a>"))
 for _, key in pairs(key_table) do v2ray_balancing_node:value(key, n[key]) end
 v2ray_balancing_node:depends("type", "V2ray_balancing")
 
-youtube_node = s:option(ListValue, "youtube_node", "Youtube " .. translate("Node"))
+youtube_node = s:option(ListValue, "youtube_node",
+                        "Youtube " .. translate("Node"))
 youtube_node:value("nil", translate("Close"))
 for _, key in pairs(key_table) do youtube_node:value(key, n[key]) end
 youtube_node:depends("type", "V2ray_shunt")
 
-netflix_node = s:option(ListValue, "netflix_node", "Netflix " .. translate("Node"))
+netflix_node = s:option(ListValue, "netflix_node",
+                        "Netflix " .. translate("Node"))
 netflix_node:value("nil", translate("Close"))
 for _, key in pairs(key_table) do netflix_node:value(key, n[key]) end
 netflix_node:depends("type", "V2ray_shunt")
 
-default_node = s:option(ListValue, "default_node", translate("Default") .. " " .. translate("Node"))
+default_node = s:option(ListValue, "default_node",
+                        translate("Default") .. " " .. translate("Node"))
 default_node:value("nil", translate("Close"))
 for _, key in pairs(key_table) do default_node:value(key, n[key]) end
 default_node:depends("type", "V2ray_shunt")
@@ -205,8 +220,7 @@ if is_finded("v2ray-plugin") then ss_plugin:value("v2ray-plugin") end
 if is_finded("obfs-local") then ss_plugin:value("obfs-local") end
 ss_plugin:depends("type", "SS")
 
-ss_plugin_opts =
-    s:option(Value, "ss_plugin_opts", translate("opts"))
+ss_plugin_opts = s:option(Value, "ss_plugin_opts", translate("opts"))
 ss_plugin_opts:depends("ss_plugin", "v2ray-plugin")
 ss_plugin_opts:depends("ss_plugin", "obfs-local")
 
@@ -222,10 +236,6 @@ use_kcp:depends("type", "Brook")
 kcp_server = s:option(Value, "kcp_server", translate("Kcptun Server"))
 kcp_server.placeholder = translate("Default:Current Server")
 kcp_server:depends("use_kcp", "1")
-
-kcp_use_ipv6 = s:option(Flag, "kcp_use_ipv6", translate("Use IPv6"))
-kcp_use_ipv6.default = 0
-kcp_use_ipv6:depends("use_kcp", "1")
 
 kcp_port = s:option(Value, "kcp_port", translate("Kcptun Port"))
 kcp_port.datatype = "port"
@@ -431,7 +441,7 @@ function rmempty_restore()
     password.rmempty = true
     timeout.rmempty = true
     tcp_fast_open.rmempty = true
-    --v2ray_protocol.rmempty = true
+    -- v2ray_protocol.rmempty = true
     v2ray_VMess_id.rmempty = true
     v2ray_VMess_alterId.rmempty = true
 end
@@ -453,7 +463,7 @@ type.validate = function(self, value)
     elseif value == "V2ray" then
         address.rmempty = false
         port.rmempty = false
-        --v2ray_protocol.rmempty = false
+        -- v2ray_protocol.rmempty = false
         v2ray_VMess_id.rmempty = false
         v2ray_VMess_alterId.rmempty = false
     elseif value == "V2ray_balancing" then
