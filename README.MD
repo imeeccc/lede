@@ -12,9 +12,8 @@
 
 - 添加主题 ([rosywrt/luci-theme-rosy](https://github.com/rosywrt/luci-theme-rosy))、([apollo-ng
 /
-luci-theme-darkmatter](https://github.com/apollo-ng/luci-theme-darkmatter))、([rosywrt
-/
-luci-theme-purple](https://github.com/rosywrt/luci-theme-purple))
+luci-theme-darkmatter](https://github.com/apollo-ng/luci-theme-darkmatter))
+
 
 - 添加serverchan插件([tty228/luci-app-serverchan](https://github.com/tty228/luci-app-serverchan))
 
