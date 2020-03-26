@@ -38,7 +38,7 @@ function config_check(CONFIG_FILE)
      if (proxy ~= 0) then
         proxy = luci.sys.call(string.format('egrep "^proxies:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      end
-     group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     group = luci.sys.call(string.format('egrep " {0,}Proxy Group" "%s" >/dev/null 2>&1',CONFIG_FILE))
      if (group ~= 0) then
      	  group = luci.sys.call(string.format('egrep "^ {0,}proxy-groups:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      end
@@ -119,6 +119,7 @@ o.inputstyle="apply"
 Button.render(o,t,a)
 end
 btnis.write=function(a,t)
+fs.unlink("/tmp/Proxy_Group")
 luci.sys.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
 uci:set("openclash", "config", "enable", 1)
 uci:commit("openclash")
