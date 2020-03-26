@@ -70,7 +70,11 @@ local function ConnersHua_return()
 end
 
 local function daip()
-        return luci.sys.exec("ifstatus lan 2>/dev/null |jsonfilter -e '@[\"ipv4-address\"][0].address' 2>/dev/null")
+	local daip = luci.sys.exec("ifstatus lan 2>/dev/null |jsonfilter -e '@[\"ipv4-address\"][0].address' 2>/dev/null")
+	if not daip or daip == "" then
+		local daip = luci.sys.exec("uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
+	end
+	return daip
 end
 
 local function dase()
@@ -78,7 +82,8 @@ local function dase()
 end
 
 local function check_lastversion()
-	return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
+	luci.sys.exec("sh /usr/share/openclash/openclash_version.sh 2>/dev/null")
+	return luci.sys.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
 end
 
 local function check_currentversion()
@@ -91,15 +96,12 @@ end
 
 local function coremodel()
   local coremodel = luci.sys.exec("cat /proc/cpuinfo |grep 'cpu model' 2>/dev/null |awk -F ': ' '{print $2}' 2>/dev/null")
+  local coremodel2 = luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
   if not coremodel or coremodel == "" then
-     return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+     return coremodel2 .. "," .. coremodel2
   else
-     return coremodel
+     return coremodel .. "," .. coremodel2
   end
-end
-
-local function coremodel2()
-	return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 end
 
 local function corecv()
@@ -113,7 +115,7 @@ end
 local function corelv()
 	local new = luci.sys.call(string.format("sh /usr/share/openclash/clash_version.sh"))
 	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
-	return core_lv..","..new
+	return core_lv .. "," .. new
 end
 
 local function opcv()
@@ -121,15 +123,19 @@ local function opcv()
 end
 
 local function oplv()
-   return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n 1p /tmp/openclash_last_version 2>/dev/null |sed 's/^v//g' 2>/dev/null")
+	 local new = luci.sys.call(string.format("sh /usr/share/openclash/openclash_version.sh"))
+	 local oplv = luci.sys.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null")
+   return oplv .. "," .. new
 end
 
 local function opup()
-   return luci.sys.exec("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh && sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
+   luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh >/dev/null 2>&1")
+   return luci.sys.call("sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
 end
 
 local function coreup()
-   return luci.sys.exec("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh && sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
+   luci.sys.call("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
+   return luci.sys.call("sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
 end
 
 local function corever()
@@ -205,7 +211,6 @@ function action_update()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			coremodel = coremodel(),
-			coremodel2 = coremodel2(),
 			corecv = corecv(),
 			opcv = opcv(),
 			corever = corever(),

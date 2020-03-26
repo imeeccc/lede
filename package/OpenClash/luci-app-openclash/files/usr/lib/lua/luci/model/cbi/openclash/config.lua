@@ -36,7 +36,7 @@ function config_check(CONFIG_FILE)
      if (proxy ~= 0) then
         proxy = luci.sys.call(string.format('egrep "^proxies:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      end
-     group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     group = luci.sys.call(string.format('egrep " {0,}Proxy Group" "%s" >/dev/null 2>&1',CONFIG_FILE))
      if (group ~= 0) then
      	  group = luci.sys.call(string.format('egrep "^ {0,}proxy-groups:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      end
@@ -133,6 +133,7 @@ HTTP.setfilehandler(
 			else
 				 um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			end
+			fs.unlink("/tmp/Proxy_Group")
 		end
 	end
 )
@@ -199,6 +200,7 @@ o.inputstyle="apply"
 Button.render(o,t,a)
 end
 btnis.write=function(a,t)
+fs.unlink("/tmp/Proxy_Group")
 luci.sys.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
 uci:commit("openclash")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
@@ -243,8 +245,9 @@ e.inputstyle="reset"
 Button.render(e,t,a)
 end
 btnrm.write=function(a,t)
-local a=fs.unlink("/etc/openclash/config/"..luci.openclash.basename(e[t].name))
-local db=fs.unlink("/etc/openclash/backup/"..luci.openclash.basename(e[t].name))
+	fs.unlink("/tmp/Proxy_Group")
+	fs.unlink("/etc/openclash/backup/"..luci.openclash.basename(e[t].name))
+	local a=fs.unlink("/etc/openclash/config/"..luci.openclash.basename(e[t].name))
 if a then table.remove(e,t)end
 return a
 end
@@ -367,6 +370,7 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   uci:commit("openclash")
 end
 
@@ -374,6 +378,7 @@ o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   uci:set("openclash", "config", "enable", 1)
   uci:commit("openclash")
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
