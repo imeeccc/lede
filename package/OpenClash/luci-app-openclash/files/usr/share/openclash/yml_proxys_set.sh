@@ -13,6 +13,9 @@ CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
+UCI_DEL_LIST="uci del_list openclash.config.new_servers_group"
+UCI_ADD_LIST="uci add_list openclash.config.new_servers_group"
+UCI_SET="uci set openclash.config."
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -107,6 +110,17 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 }
 
+set_http_path()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+cat >> "$SERVER_FILE" <<-EOF
+      - '$1'
+EOF
+}
+
+
 #写入服务器节点到配置文件
 yml_servers_set()
 {
@@ -138,6 +152,8 @@ yml_servers_set()
    config_get "obfs_snell" "$section" "obfs_snell" ""
    config_get "sni" "$section" "sni" ""
    config_get "alpn" "$section" "alpn" ""
+   config_get "http_path" "$section" "http_path" ""
+   config_get "keep_alive" "$section" "keep_alive" ""
    
    if [ ! -z "$if_game_proxy" ] && [ "$if_game_proxy" != "$name" ] && [ "$if_game_proxy_type" = "proxy" ]; then
       return
@@ -183,8 +199,12 @@ yml_servers_set()
       fi
    fi
    
-   if [ "$obfs_vmess" != "none" ]; then
+   if [ "$obfs_vmess" = "websocket" ]; then
       obfs_vmess="network: ws"
+   fi
+   
+   if [ "$obfs_vmess" = "http" ]; then
+      obfs_vmess="network: http"
    fi
    
    if [ ! -z "$custom" ] && [ "$type" = "vmess" ]; then
@@ -194,7 +214,7 @@ yml_servers_set()
    if [ ! -z "$path" ]; then
       if [ "$type" != "vmess" ]; then
          path="path: '$path'"
-      else
+      elif [ "$obfs_vmess" = "network: ws" ]; then
          path="ws-path: $path"
       fi
    fi
@@ -214,13 +234,17 @@ cat >> "$SERVER_FILE" <<-EOF
   udp: $udp
 EOF
      fi
-     if [ ! -z "$obfss" ] && [ ! -z "$host" ]; then
+     if [ ! -z "$obfss" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   $obfss
   plugin-opts:
     mode: $obfs
+EOF
+        if [ ! -z "$host" ]; then
+cat >> "$SERVER_FILE" <<-EOF
     host: $host
 EOF
+        fi
         if [  "$obfss" = "plugin: v2ray-plugin" ]; then
            if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
@@ -282,15 +306,30 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
   $obfs_vmess
 EOF
-         if [ ! -z "$path" ]; then
+         if [ ! -z "$path" ] && [ "$obfs_vmess" = "network: ws" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   $path
 EOF
          fi
-         if [ ! -z "$custom" ]; then
+         if [ ! -z "$custom" ] && [ "$obfs_vmess" = "network: ws" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   ws-headers:
     $custom
+EOF
+         fi
+         if [ ! -z "$http_path" ] && [ "$obfs_vmess" = "network: http" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  http-opts:
+    method: "GET"
+    path:
+EOF
+            config_list_foreach "$section" "http_path" set_http_path
+         fi
+         if [ "$keep_alive" = "true" ] && [ "$obfs_vmess" = "network: http" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    headers:
+      Connection:
+        - keep-alive
 EOF
          fi
       fi
@@ -413,15 +452,35 @@ EOF
 
 }
 
+new_servers_group_set()
+{
+   local section="$1"
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "name" "$section" "name" ""
+   
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
+   
+   if [ -z "$name" ] || [ "$(echo $name.yaml)" != "$CONFIG_NAME" ]; then
+      return
+   fi
+   
+   new_servers_group_set=1
+   
+}
+
 
 #创建配置文件
 if_game_proxy="$1"
 if_game_proxy_type="$2"
+#判断是否启用保留配置
+config_load "openclash"
+config_foreach new_servers_group_set "config_subscribe"
 #proxy-provider
 echo "开始写入配置文件【$CONFIG_NAME】的代理集信息..." >$START_LOG
 echo "proxy-provider:" >$PROXY_PROVIDER_FILE
 rm -rf /tmp/Proxy_Provider
-config_load "openclash"
 config_foreach yml_proxy_provider_set "proxy-provider"
 sed -i "s/^ \{0,\}/  - /" /tmp/Proxy_Provider 2>/dev/null #添加参数
 if [ "$(grep "-" /tmp/Proxy_Provider 2>/dev/null |wc -l)" -eq 0 ]; then
@@ -529,21 +588,20 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-uci set openclash.config.rule_source="ConnersHua"
-uci set openclash.config.GlobalTV="GlobalTV"
-uci set openclash.config.AsianTV="AsianTV"
-uci set openclash.config.Proxy="Proxy"
-uci set openclash.config.Apple="Apple"
-uci set openclash.config.AdBlock="AdBlock"
-uci set openclash.config.Domestic="Domestic"
-uci set openclash.config.Others="Others"
-[ "$config_auto_update" -eq 1 ] && {
-	uci set openclash.config.servers_update="1"
-	uci del openclash.config.new_servers_group >/dev/null 2>&1
-	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
-	uci add_list openclash.config.new_servers_group="Proxy"
- 	uci add_list openclash.config.new_servers_group="AsianTV"
-	uci add_list openclash.config.new_servers_group="GlobalTV"
+${UCI_SET}rule_source="ConnersHua"
+${UCI_SET}GlobalTV="GlobalTV"
+${UCI_SET}AsianTV="AsianTV"
+${UCI_SET}Proxy="Proxy"
+${UCI_SET}Apple="Apple"
+${UCI_SET}AdBlock="AdBlock"
+${UCI_SET}Domestic="Domestic"
+${UCI_SET}Others="Others"
+[ "$config_auto_update" -eq 1 ] && [ "$new_servers_group_set" -eq 1 ] && {
+	${UCI_SET}servers_update="1"
+	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
+	${UCI_DEL_LIST}="AsianTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="AsianTV" >/dev/null 2>&1
+	${UCI_DEL_LIST}="GlobalTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="GlobalTV" >/dev/null 2>&1
 }
 elif [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用lhie1规则创建中..." >$START_LOG
@@ -593,6 +651,11 @@ cat >> "$SERVER_FILE" <<-EOF
   - DIRECT
   - Domestic
 - name: Apple
+  type: select
+  proxies:
+  - DIRECT
+  - Proxy
+- name: Microsoft
   type: select
   proxies:
   - DIRECT
@@ -728,35 +791,35 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-uci set openclash.config.rule_source="lhie1"
-uci set openclash.config.GlobalTV="GlobalTV"
-uci set openclash.config.AsianTV="AsianTV"
-uci set openclash.config.Proxy="Proxy"
-uci set openclash.config.Apple="Apple"
-uci set openclash.config.Netflix="Netflix"
-uci set openclash.config.Spotify="Spotify"
-uci set openclash.config.Steam="Steam"
-uci set openclash.config.AdBlock="AdBlock"
-uci set openclash.config.Netease_Music="Netease Music"
-uci set openclash.config.Speedtest="Speedtest"
-uci set openclash.config.Telegram="Telegram"
-uci set openclash.config.PayPal="PayPal"
-uci set openclash.config.Domestic="Domestic"
-uci set openclash.config.Others="Others"
-[ "$config_auto_update" -eq 1 ] && {
-	uci set openclash.config.servers_update="1"
-	uci del openclash.config.new_servers_group >/dev/null 2>&1
-	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
-	uci add_list openclash.config.new_servers_group="Proxy"
- 	uci add_list openclash.config.new_servers_group="AsianTV"
-	uci add_list openclash.config.new_servers_group="GlobalTV"
-	uci add_list openclash.config.new_servers_group="Netflix"
-	uci add_list openclash.config.new_servers_group="Spotify"
-	uci add_list openclash.config.new_servers_group="Steam"
-	uci add_list openclash.config.new_servers_group="Telegram"
-	uci add_list openclash.config.new_servers_group="PayPal"
-	uci add_list openclash.config.new_servers_group="Speedtest"
-	uci add_list openclash.config.new_servers_group="Netease Music"
+${UCI_SET}rule_source="lhie1"
+${UCI_SET}GlobalTV="GlobalTV"
+${UCI_SET}AsianTV="AsianTV"
+${UCI_SET}Proxy="Proxy"
+${UCI_SET}Apple="Apple"
+${UCI_SET}Microsoft="Microsoft"
+${UCI_SET}Netflix="Netflix"
+${UCI_SET}Spotify="Spotify"
+${UCI_SET}Steam="Steam"
+${UCI_SET}AdBlock="AdBlock"
+${UCI_SET}Netease_Music="Netease Music"
+${UCI_SET}Speedtest="Speedtest"
+${UCI_SET}Telegram="Telegram"
+${UCI_SET}PayPal="PayPal"
+${UCI_SET}Domestic="Domestic"
+${UCI_SET}Others="Others"
+[ "$config_auto_update" -eq 1 ] && [ "$new_servers_group_set" -eq 1 ] && {
+	${UCI_SET}servers_update="1"
+	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
+	${UCI_DEL_LIST}="AsianTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="AsianTV" >/dev/null 2>&1
+	${UCI_DEL_LIST}="GlobalTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="GlobalTV" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Netflix" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netflix" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Spotify" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Spotify" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Steam" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Steam" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Telegram" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Telegram" >/dev/null 2>&1
+	${UCI_DEL_LIST}="PayPal" >/dev/null 2>&1 && ${UCI_ADD_LIST}="PayPal" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Speedtest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Speedtest" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Netease Music" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netease Music" >/dev/null 2>&1
 }
 elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用ConnersHua回国规则创建中..." >$START_LOG
@@ -800,14 +863,13 @@ cat >> "$SERVER_FILE" <<-EOF
   - Proxy
   - DIRECT
 EOF
-uci set openclash.config.rule_source="ConnersHua_return"
-uci set openclash.config.Proxy="Proxy"
-uci set openclash.config.Others="Others"
-[ "$config_auto_update" -eq 1 ] && {
-	uci set openclash.config.servers_update="1"
-	uci del openclash.config.new_servers_group >/dev/null 2>&1
-	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
-	uci add_list openclash.config.new_servers_group="Proxy"
+${UCI_SET}rule_source="ConnersHua_return"
+${UCI_SET}Proxy="Proxy"
+${UCI_SET}Others="Others"
+[ "$config_auto_update" -eq 1 ] && [ "$new_servers_group_set" -eq 1 ] && {
+	${UCI_SET}servers_update="1"
+	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
 }
 fi
 
@@ -856,8 +918,8 @@ if [ -z "$if_game_proxy" ]; then
 fi
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/Proxy_Provider 2>/dev/null
-uci set openclash.config.enable=1 2>/dev/null
+${UCI_SET}enable=1 2>/dev/null
 [ "$(uci get openclash.config.servers_if_update)" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
-uci set openclash.config.servers_if_update=0
+${UCI_SET}servers_if_update=0
 uci commit openclash
 
