@@ -19,6 +19,6 @@ luci-theme-darkmatter](https://github.com/apollo-ng/luci-theme-darkmatter))
 
 - 添加adguardhome插件([rufengsuixing/luci-app-adguardhome](https://github.com/rufengsuixing/luci-app-adguardhome))
 
-- 添加passwall插件(从[Lienol/openwrt-package](https://github.com/Lienol/openwrt-package)提取)
+- ~~添加passwall插件(从[Lienol/openwrt-package](https://github.com/Lienol/openwrt-package)提取)~~
 
-- 添加luci-app-diskman插件([lisaac/luci-app-diskman](https://github.com/lisaac/luci-app-diskman))
+- ~~添加luci-app-diskman插件([lisaac/luci-app-diskman](https://github.com/lisaac/luci-app-diskman))~~
