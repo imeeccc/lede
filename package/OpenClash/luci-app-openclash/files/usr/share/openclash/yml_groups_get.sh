@@ -5,6 +5,7 @@ status=$(ps|grep -c /usr/share/openclash/yml_groups_get.sh)
 
 START_LOG="/tmp/openclash_start.log"
 CFG_FILE="/etc/config/openclash"
+servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
@@ -46,12 +47,12 @@ echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
 }
 
 #判断各个区位置
-group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$CONFIG_FILE" 2>/dev/null)
-provider_len=$(sed -n '/^ \{0,\}proxy-provider:/=' "$CONFIG_FILE" 2>/dev/null)
+group_len=$(sed -n '/^ \{0,\}proxy-groups:/=' "$CONFIG_FILE" 2>/dev/null)
+provider_len=$(sed -n '/^ \{0,\}proxy-providers:/=' "$CONFIG_FILE" 2>/dev/null)
 if [ "$provider_len" -ge "$group_len" ]; then
-   awk '/Proxy Group:/,/proxy-provider:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
+   awk '/proxy-groups:/,/proxy-providers:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
 else
-   awk '/Proxy Group:/,/Rule:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
+   awk '/proxy-groups:/,/rules:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
 fi 2>/dev/null
 
 #判断当前配置文件是否有策略组信息
@@ -109,7 +110,7 @@ cfg_delete()
 config_load "openclash"
 config_foreach cfg_group_name "groups"
 
-if [ "$servers_if_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
+if [ "$servers_if_update" -eq 1 ] && [ "$servers_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
    /usr/share/openclash/yml_proxys_get.sh
    exit 0
 else
