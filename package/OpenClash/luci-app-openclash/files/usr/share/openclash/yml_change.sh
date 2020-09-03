@@ -111,6 +111,8 @@
        uci set openclash.config.config_reload=0
     elif [ -n "$(grep "^ \{0,\}device-url:" "$7")" ] && [ "$15" -eq 1 ]; then
        uci set openclash.config.config_reload=0
+    elif [ -n "$(grep "^ \{0,\}device-url:" "$7")" ] && [ "$15" -eq 3 ]; then
+       uci set openclash.config.config_reload=0
     fi
     
     uci commit openclash
@@ -170,7 +172,7 @@
     fi
 
 #TUN
-    if [ "$15" -eq 1 ]; then
+    if [ "$15" -eq 1 ] || [ "$15" -eq 3 ]; then
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
        if [ -n "$16" ]; then
@@ -200,8 +202,9 @@
 	           sed -i "/^ \{0,\}hosts:/c\hosts:" "$7"
 	        fi
 	     fi
-       sed -i '/^hosts:/a\##Custom HOSTS END##' "$7" 2>/dev/null
-       sed -i '/^hosts:/a\##Custom HOSTS##' "$7" 2>/dev/null
+	     sed -i "/^dns:/a\  use-hosts: true" "$7"
+	     sed -i '/^hosts:/a\##Custom HOSTS END##' "$7" 2>/dev/null
+	     sed -i '/^hosts:/a\##Custom HOSTS##' "$7" 2>/dev/null
 	     sed -i '/##Custom HOSTS##/r/etc/openclash/custom/openclash_custom_hosts.list' "$7" 2>/dev/null
 	     sed -i "/^hosts:/,/^dns:/ {s/^ \{0,\}'/  '/}" "$7" 2>/dev/null #修改参数空格
 	  fi
