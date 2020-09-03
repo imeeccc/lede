@@ -132,6 +132,7 @@
 		};
 	};
 };
+<<<<<<< HEAD
 
 /*
 * The i2c device on gsbi4 should not be enabled.
@@ -139,6 +140,8 @@
 * RPM usage. Turning this on in kernel manifests as
 * i2c failure for the RPM.
 */
+=======
+>>>>>>> upgrade/master
 
 &gsbi5 {
 	status = "disabled";
@@ -164,7 +167,7 @@
 
 &pcie1 {
 	status = "okay";
-	force_gen1 = <1>;
+	max-link-speed = <1>;
 };
 
 &nand_controller {

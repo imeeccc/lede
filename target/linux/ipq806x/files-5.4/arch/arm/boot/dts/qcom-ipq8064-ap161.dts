@@ -36,6 +36,7 @@
 	};
 };
 
+<<<<<<< HEAD
 /*
 * The i2c device on gsbi4 should not be enabled.
 * On ipq806x designs gsbi4 i2c is meant for exclusive
@@ -43,6 +44,8 @@
 * i2c failure for the RPM.
 */
 
+=======
+>>>>>>> upgrade/master
 &flash {
 	partitions {
 		compatible = "qcom,smem";
@@ -63,7 +66,7 @@
 
 &pcie1 {
 	status = "okay";
-	force_gen1 = <1>;
+	max-link-speed = <1>;
 };
 
 &pcie2 {

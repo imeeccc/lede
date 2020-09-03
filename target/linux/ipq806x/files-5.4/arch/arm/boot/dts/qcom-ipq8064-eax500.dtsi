@@ -1,121 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later OR MIT
-<<<<<<< HEAD
+
 #include "qcom-ipq8064-v2.0.dtsi"
 
 #include <dt-bindings/input/input.h>
-=======
-
-#include "qcom-ipq8064-eax500.dtsi"
->>>>>>> upgrade/master
 
 / {
-	model = "Linksys EA7500 V1 WiFi Router";
-	compatible = "linksys,ea7500-v1", "qcom,ipq8064";
-
-	memory@0 {
-		reg = <0x42000000 0xe000000>;
-		device_type = "memory";
-	};
-
-<<<<<<< HEAD
-	reserved-memory {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges;
-		rsvd@41200000 {
-			reg = <0x41200000 0x300000>;
-			no-map;
-		};
-	};
-
-	aliases {
-		serial0 = &gsbi4_serial;
-
-=======
-	aliases {
->>>>>>> upgrade/master
-		led-boot = &led_power;
-		led-failsafe = &led_power;
-		led-running = &led_power;
-		led-upgrade = &led_power;
-	};
-
 	chosen {
-<<<<<<< HEAD
 		bootargs = "console=ttyMSM0,115200n8";
-		stdout-path = "serial0:115200n8";
-		append-rootblock = "ubi.mtd=";  /* append to bootargs adding the root deviceblock nbr from bootloader */
-		find-rootblock = "ubi.mtd=";  /* look for root deviceblock nbr in this bootarg */
-=======
-		/* look for root deviceblock nbr in this bootarg */
-		find-rootblock = "ubi.mtd=";
->>>>>>> upgrade/master
+		/* append to bootargs adding the root deviceblock nbr from bootloader */
+		append-rootblock = "ubi.mtd=";
 	};
-
-	keys {
-		compatible = "gpio-keys";
-		pinctrl-0 = <&button_pins>;
-		pinctrl-names = "default";
-
-		reset {
-			label = "reset";
-			gpios = <&qcom_pinmux 68 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_RESTART>;
-		};
-
-		wps {
-			label = "wps";
-			gpios = <&qcom_pinmux 65 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_WPS_BUTTON>;
-		};
-	};
-
-	leds {
-		compatible = "gpio-leds";
-		pinctrl-0 = <&led_pins>;
-		pinctrl-names = "default";
-
-		led_power: power {
-			label = "ea7500-v1:white:power";
-			gpios = <&qcom_pinmux 6 GPIO_ACTIVE_LOW>;
-			default-state = "keep";
-		};
-	};
-};
-
-&qcom_pinmux {
-	button_pins: button_pins {
-		mux {
-			pins = "gpio65", "gpio68";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-pull-up;
-		};
-	};
-
-	led_pins: led_pins {
-		mux {
-			pins = "gpio6";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-pull-up;
-		};
-	};
-};
-
-<<<<<<< HEAD
-&gsbi4 {
-	qcom,mode = <GSBI_PROT_I2C_UART>;
-	status = "okay";
-	serial@16340000 {
-		status = "okay";
-	};
-	/*
-	* The i2c device on gsbi4 should not be enabled.
-	* On ipq806x designs gsbi4 i2c is meant for exclusive
-	* RPM usage. Turning this on in kernel manifests as
-	* i2c failure for the RPM.
-	*/
 };
 
 &usb3_0 {
@@ -128,7 +22,8 @@
 
 &pcie0 {
 	status = "okay";
-	force_gen1 = <1>;
+
+	max-link-speed = <1>;
 };
 
 &pcie1 {
@@ -153,7 +48,7 @@
 		nand-bus-width = <8>;
 		nand-ecc-step-size = <512>;
 
-		partitions {
+		partitions: partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -235,7 +130,7 @@
 
 			partition@f80000 {
 				label = "kernel1";
-				reg = <0x0f80000 0x2800000>;  /* 3 MB spill to rootfs*/
+				reg = <0x0f80000 0x2800000>;  /* 3 MB spill to rootfs */
 			};
 
 			partition@1280000 {
@@ -251,16 +146,6 @@
 			partition@3a80000 {
 				label = "rootfs2";
 				reg = <0x3a80000 0x2500000>;
-			};
-
-			partition@5f80000 {
-				label = "sysdiag";
-				reg = <0x5f80000 0x100000>;
-			};
-
-			partition@6080000 {
-				label = "syscfg";
-				reg = <0x6080000 0x1f80000>;
 			};
 		};
 	};
@@ -289,6 +174,7 @@
 
 &gmac1 {
 	status = "okay";
+
 	phy-mode = "rgmii";
 	qcom,id = <1>;
 
@@ -303,6 +189,7 @@
 
 &gmac2 {
 	status = "okay";
+
 	phy-mode = "sgmii";
 	qcom,id = <2>;
 
@@ -315,16 +202,3 @@
 &adm_dma {
 	status = "okay";
 };
-=======
-&partitions {
-	partition@5f80000 {
-		label = "sysdiag";
-		reg = <0x5f80000 0x100000>;
-	};
-
-	partition@6080000 {
-		label = "syscfg";
-		reg = <0x6080000 0x1f80000>;
-	};
-};
->>>>>>> upgrade/master

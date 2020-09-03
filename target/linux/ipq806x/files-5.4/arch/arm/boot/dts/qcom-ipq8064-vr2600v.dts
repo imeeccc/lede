@@ -11,16 +11,6 @@
 		device_type = "memory";
 	};
 
-	reserved-memory {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges;
-		rsvd@41200000 {
-			reg = <0x41200000 0x300000>;
-			no-map;
-		};
-	};
-
 	aliases {
 		mdio-gpio0 = &mdio0;
 
@@ -162,6 +152,7 @@
 			drive-strength = <12>;
 		};
 	};
+<<<<<<< HEAD
 };
 
 &gsbi4 {
@@ -176,6 +167,8 @@
 		* RPM usage. Turning this on in kernel manifests as
 		* i2c failure for the RPM.
 		*/
+=======
+>>>>>>> upgrade/master
 };
 
 &gsbi5 {
@@ -302,7 +295,7 @@
 
 &pcie1 {
 	status = "okay";
-	force_gen1 = <1>;
+	max-link-speed = <1>;
 };
 
 &mdio0 {
