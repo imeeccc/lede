@@ -65,9 +65,13 @@ Signed-off-by: Laurentiu Tudor <laurentiu.tudor@nxp.com>
  		if (writable)
  			pte = kvm_s2pte_mkwrite(pte);
 <<<<<<< HEAD
+<<<<<<< HEAD
 @@ -2347,7 +2349,7 @@ int kvm_arch_prepare_memory_region(struc
 =======
 @@ -2356,7 +2358,7 @@ int kvm_arch_prepare_memory_region(struc
+>>>>>>> upgrade/master
+=======
+@@ -2361,7 +2363,7 @@ int kvm_arch_prepare_memory_region(struc
 >>>>>>> upgrade/master
  
  			ret = kvm_phys_addr_ioremap(kvm, gpa, pa,

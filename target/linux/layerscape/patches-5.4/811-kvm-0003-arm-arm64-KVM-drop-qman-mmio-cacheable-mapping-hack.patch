@@ -106,9 +106,13 @@ Signed-off-by: Diana Craciun <diana.craciun@nxp.com>
  		mem_type = PAGE_S2_DEVICE;
  		flags |= KVM_S2PTE_FLAG_IS_IOMAP;
 <<<<<<< HEAD
+<<<<<<< HEAD
 @@ -2337,6 +2381,9 @@ int kvm_arch_prepare_memory_region(struc
 =======
 @@ -2346,6 +2390,9 @@ int kvm_arch_prepare_memory_region(struc
+>>>>>>> upgrade/master
+=======
+@@ -2351,6 +2395,9 @@ int kvm_arch_prepare_memory_region(struc
 >>>>>>> upgrade/master
  			gpa_t gpa = mem->guest_phys_addr +
  				    (vm_start - mem->userspace_addr);
@@ -120,9 +124,13 @@ Signed-off-by: Diana Craciun <diana.craciun@nxp.com>
  			pa = (phys_addr_t)vma->vm_pgoff << PAGE_SHIFT;
  			pa += vm_start - vma->vm_start;
 <<<<<<< HEAD
+<<<<<<< HEAD
 @@ -2347,9 +2394,13 @@ int kvm_arch_prepare_memory_region(struc
 =======
 @@ -2356,9 +2403,13 @@ int kvm_arch_prepare_memory_region(struc
+>>>>>>> upgrade/master
+=======
+@@ -2361,9 +2408,13 @@ int kvm_arch_prepare_memory_region(struc
 >>>>>>> upgrade/master
  				goto out;
  			}
