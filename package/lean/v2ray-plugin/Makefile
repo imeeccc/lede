@@ -8,13 +8,29 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=v2ray-plugin
-PKG_VERSION:=1.3.1
-PKG_RELEASE:=2
+<<<<<<< HEAD
+<<<<<<< HEAD
+PKG_VERSION:=1.3.5
+=======
+PKG_VERSION:=1.4.1
+>>>>>>> upgrade/master
+=======
+PKG_VERSION:=1.7.0
+>>>>>>> upgrade/master
+PKG_RELEASE:=1
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/shadowsocks/v2ray-plugin/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=86d37a8ecef82457b4750a1af9e8d093b25ae0d32ea7dcc2ad5c0068fe2d3d74
+PKG_SOURCE_URL:=https://codeload.github.com/teddysun/v2ray-plugin/tar.gz/v$(PKG_VERSION)?
+<<<<<<< HEAD
+<<<<<<< HEAD
+PKG_HASH:=46b3b9aec066df710f7ff27518c73c94ed63bbcdd6827e759da8627bf300a8d9
+=======
+PKG_HASH:=ecd53ea59dea178f75b47f399a48ce0e0d09ec9e9d866c5becf82d1ed35a7634
+>>>>>>> upgrade/master
+=======
+PKG_HASH:=5a8e1912a9902daa64a0aa1ea60ff367d4e806ce4443ba08b4a6e98b0d1515f0
+>>>>>>> upgrade/master
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
@@ -34,7 +50,7 @@ include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
 define Package/$(PKG_NAME)/config
 config $(PKG_NAME)_INCLUDE_GOPROXY
 	bool "Compiling with GOPROXY proxy"
-	default n
+	default y
 
 endef
 
